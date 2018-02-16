@@ -153,19 +153,19 @@ def vive_controller():
 		## 	print "debug"
 
                 # UDP sock to control fly
-                try:
-                    data, addr = sock.recvfrom(1024)
-                    diagnostics.watch(data)
-                    if data == "up":
-                        hydra[0].trigger = True
-                        hydra[1].one = True
-                        hydra[1].two = False
-                    if data == "down":
-                        hydra[0].trigger = True
-                        hydra[1].one = False
-                        hydra[1].two = True
-                except Exception as e:
-                    print "debug exception on udp sock"
+                ## try:
+                ##     data, addr = sock.recvfrom(1024)
+                ##     diagnostics.watch(data)
+                ##     if data == "up":
+                ##         hydra[0].trigger = True
+                ##         hydra[1].one = True
+                ##         hydra[1].two = False
+                ##     if data == "down":
+                ##         hydra[0].trigger = True
+                ##         hydra[1].one = False
+                ##         hydra[1].two = True
+                ## except Exception as e:
+                ##     print "debug exception on udp sock"
 
 		# limit
 		#if beta >= -0.3:
