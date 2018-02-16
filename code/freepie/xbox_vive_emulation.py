@@ -262,6 +262,21 @@ def vive_controller():
 	hydra[1].z = posz1
 	hydra[1].trigger = xbox360[i].rightTrigger
 
+        # UDP sock to control fly
+        try:
+            data, addr = sock.recvfrom(1024)
+            diagnostics.watch(data)
+            if data == "up":
+                hydra[1].trigger = True
+                hydra[0].one = True
+                hydra[0].two = False
+            if data == "down":
+                hydra[1].trigger = True
+                hydra[0].one = False
+                hydra[0].two = True
+        except Exception as e:
+            print "debug exception on udp sock"
+
 	diagnostics.watch(xbox360[i].a)
 	diagnostics.watch(xbox360[i].b)
 	diagnostics.watch(xbox360[i].x)
