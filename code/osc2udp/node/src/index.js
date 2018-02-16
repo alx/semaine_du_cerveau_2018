@@ -59,6 +59,7 @@ const sock = udp.createSocket("udp4", function(msg, rinfo) {
   try {
     const message = oscMin.fromBuffer(msg);
     const element = message.elements[0];
+    //console.log(message);
     //console.log(oscAddresses.contains(element.address) ? 1 : 0);
     if (
       oscAddresses.indexOf(element.address) != -1 &&
@@ -249,4 +250,4 @@ function refresh() {
   screen.render();
 }
 
-setInterval(refresh, 10);
+setInterval(refresh, 50);

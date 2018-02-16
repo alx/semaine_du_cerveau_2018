@@ -4,6 +4,7 @@
   "description": "Convert Muse Monitor OSC packets to UDP datagram",
   "main": "src/index.js",
   "scripts": {
+    "start": "node src/index.js",
     "precommit": "pretty-quick --staged"
   },
   "repository":
