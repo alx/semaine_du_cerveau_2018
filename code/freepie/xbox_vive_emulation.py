@@ -60,7 +60,6 @@ def vive_controller():
 	speed_pos = 1
 	speed_rot = .002
 	db = 0.1
-	global_initialisation = False
 
 	# Joystick left controller
 	#if xbox360[i].leftShoulder and xbox360[i].leftTrigger > 0.2:
@@ -74,7 +73,6 @@ def vive_controller():
 		hydra[1].joyx = filters.deadband(xbox360[i].rightStickX, db)
 		hydra[1].joyy = filters.deadband(xbox360[i].rightStickY, db) + 0.1
 	elif xbox360[i].leftShoulder:
-		global_initialisation = True
 		# Orbit left controller
 		if filters.deadband(xbox360[i].leftStickX, db):
 			Az = atan2(posx0, -posz0)
@@ -131,7 +129,7 @@ def vive_controller():
 			if abs(h+dh) < pi/2:
 				h += dh
 		[alpha, beta, gamma] = hydra_angles(Az, h)
-		
+
 		#
 		####
 		####
@@ -140,25 +138,41 @@ def vive_controller():
 		####
 		####
 		####
-		
-		diagnostics.watch(h)
-		if global_initialisation:
-			beta = -0.6
-			global_initialisation = False
-		try:
-			data, addr = sock.recvfrom(1024)
-			beta = beta + float(data)/1000 * -1
-			diagnostics.watch(beta)
-			diagnostics.watch(data)
-		except Exception as e:
-			print "debug"
-		
-		# limit 
+
+                # UDP sock to control laser orientation
+		## diagnostics.watch(h)
+		## if global_initialisation:
+		## 	beta = -0.6
+		## 	global_initialisation = False
+		## try:
+		## 	data, addr = sock.recvfrom(1024)
+		## 	beta = beta + float(data)/1000 * -1
+		## 	diagnostics.watch(beta)
+		## 	diagnostics.watch(data)
+		## except Exception as e:
+		## 	print "debug"
+
+                # UDP sock to control fly
+                try:
+                    data, addr = sock.recvfrom(1024)
+                    diagnostics.watch(data)
+                    if data == "up":
+                        hydra[0].trigger = True
+                        hydra[1].one = True
+                        hydra[1].two = False
+                    if data == "down":
+                        hydra[0].trigger = True
+                        hydra[1].one = False
+                        hydra[1].two = True
+                except Exception as e:
+                    print "debug exception on udp sock"
+
+		# limit
 		#if beta >= -0.3:
 		#	beta = -0.3
 		#if beta <= -0.9:
 		#	beta = -0.9
-			
+
 		####
 		####
 		####
@@ -189,7 +203,7 @@ def vive_controller():
 			posz += xbox360[i].rightStickX * speed_pos * sin(AZ)
 		if filters.deadband(xbox360[i].rightStickY, db):
 			posy += xbox360[i].rightStickY * speed_pos
-			
+
 		# Set controller
 		if ctrl == 0:
 			Az0 = Az
@@ -206,7 +220,7 @@ def vive_controller():
 		hydra[ctrl].roll = alpha
 		hydra[ctrl].pitch = beta
 		hydra[ctrl].yaw = gamma
-		
+
 	hydra[0].x = posx0
 	hydra[0].y = posy0
 	hydra[0].z = posz0
@@ -276,7 +290,7 @@ def vive_controller():
 	diagnostics.watch(posz1)
 	diagnostics.watch(Az1)
 	diagnostics.watch(h1)
-	
+
 def hydra_angles(Az, h):
 	return [0, h-eps, Az]
 

@@ -88,6 +88,13 @@ const sock = udp.createSocket("udp4", function(msg, rinfo) {
 
 sock.bind(oscIn.port, oscIn.ip);
 
+const dgram = require("dgram");
+const udpClient = dgram.createSocket("udp4");
+
+function sendUdpAltitude(direction) {
+  udpClient.send(Buffer.from(direction), udpOut.port, udpOut.ip);
+}
+
 var blessed = require("blessed"),
   contrib = require("blessed-contrib"),
   screen = blessed.screen();
@@ -188,6 +195,7 @@ function refreshDonutUdp() {
         donutLabel = "down";
         donutColor = "red";
         currentAltitude -= 1;
+        sendUdpAltitude("down");
       }
     case 2:
       break;
@@ -197,6 +205,7 @@ function refreshDonutUdp() {
       donutLabel = "up";
       donutColor = "green";
       currentAltitude += 1;
+      sendUdpAltitude("up");
   }
 
   donutUdp.setData([
