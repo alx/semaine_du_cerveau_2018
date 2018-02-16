@@ -1,9 +1,18 @@
 from math import pi, sin, cos, tan, asin, acos, atan, atan2, sqrt
-global pressed
+import socket
 
+global pressed
+global sock
+
+global keepPress
+global keepPressDirection
+
+UDP_IP=""
+UDP_PORT=9999
 eps = 38/180.0*pi
 
 def vive_controller():
+        global keepPress, keepPressDirection
         i=0
         global posx0
         global posy0
@@ -190,52 +199,72 @@ def vive_controller():
         hydra[1].y = posy1
         hydra[1].z = posz1
         hydra[1].trigger = xbox360[i].rightTrigger
-
+        
+        keepPress -= 1
+        
         try:
             data, addr = sock.recvfrom(1024)
             diagnostics.watch(data)
 
-            if data == "up":
-                hydra[1].trigger = True
-                hydra[0].one = True
-                hydra[0].two = False
-
-            if data == "down":
-                hydra[1].trigger = True
-                hydra[0].one = False
-                hydra[0].two = True
+            if (data == "up" or data == "down") and keepPress <= 0:
+            
+            	keepPressDirection = data
+            	keepPress = 300
 
         except Exception as e:
+            #diagnostics.debug(e)
             print "debug exception on udp sock"
+            
+        if keepPress > 0:
+            if keepPressDirection == "up":
+                hydra[1].trigger = 1
+                hydra[0].one = True
+                hydra[0].two = False
+                hydra[0].joybutton = True
+                hydra[0].joyx = 0.005
+                hydra[0].joyy = 0.16
 
-        diagnostics.watch(xbox360[i].a)
-        diagnostics.watch(xbox360[i].b)
-        diagnostics.watch(xbox360[i].x)
-        diagnostics.watch(xbox360[i].y)
-        diagnostics.watch(xbox360[i].start)
-        diagnostics.watch(xbox360[i].back)
-        diagnostics.watch(xbox360[i].left)
-        diagnostics.watch(xbox360[i].right)
-        diagnostics.watch(xbox360[i].up)
-        diagnostics.watch(xbox360[i].down)
-        diagnostics.watch(xbox360[i].leftStickX)
-        diagnostics.watch(xbox360[i].leftStickY)
-        diagnostics.watch(xbox360[i].rightStickX)
-        diagnostics.watch(xbox360[i].rightStickY)
-        diagnostics.watch(xbox360[i].leftShoulder)
-        diagnostics.watch(xbox360[i].rightShoulder)
-        diagnostics.watch(xbox360[i].leftTrigger)
-        diagnostics.watch(xbox360[i].rightTrigger)
-        diagnostics.watch(posx0)
-        diagnostics.watch(posy0)
-        diagnostics.watch(posz0)
-        diagnostics.watch(Az0)
-        diagnostics.watch(h0)
-        diagnostics.watch(posx1)
-        diagnostics.watch(posy1)
-        diagnostics.watch(posz1)
-        diagnostics.watch(Az1)
-        diagnostics.watch(h1)
+            if keepPressDirection == "down":
+                hydra[1].trigger = 1
+                hydra[0].one = False
+                hydra[0].two = True
+                hydra[0].joybutton = True
+                hydra[0].joyx = -0.005
+                hydra[0].joyy = -0.16
+        else:
+        	keepPressDirection = "none"
+        
+        
+        #diagnostics.watch(xbox360[i].a)
+        #diagnostics.watch(xbox360[i].b)
+        #diagnostics.watch(keepPress)
+        #diagnostics.watch(keepPressDirection)
+        #diagnostics.watch(xbox360[i].x)
+        #diagnostics.watch(xbox360[i].y)
+        ##diagnostics.watch(xbox360[i].start)
+        ##diagnostics.watch(xbox360[i].back)
+        #diagnostics.watch(xbox360[i].left)
+        #diagnostics.watch(xbox360[i].right)
+        #diagnostics.watch(xbox360[i].up)
+        #diagnostics.watch(xbox360[i].down)
+        #diagnostics.watch(xbox360[i].leftStickX)
+        #diagnostics.watch(xbox360[i].leftStickY)
+        ##diagnostics.watch(xbox360[i].rightStickX)
+        #diagnostics.watch(xbox360[i].rightStickY)
+        #diagnostics.watch(xbox360[i].leftShoulder)
+        #diagnostics.watch(xbox360[i].rightShoulder)
+        #diagnostics.watch(xbox360[i].leftTrigger)
+        #diagnostics.watch(xbox360[i].rightTrigger)
+        #diagnostics.watch(posx0)
+        #diagnostics.watch(posy0)
+        #diagnostics.watch(posz0)
+        #diagnostics.watch(Az0)
+        #diagnostics.watch(h0)
+        #diagnostics.watch(posx1)
+        #diagnostics.watch(posy1)
+        #diagnostics.watch(posz1)
+        #diagnostics.watch(Az1)
+        #diagnostics.watch(h1)
 
 def hydra_angles(Az, h):
         return [0, h-eps, Az]
@@ -284,10 +313,16 @@ def vive_init():
 global s
 
 if starting:
-        pressed = 0
-        vive_init()
-        s = 1
-        hydra_init()
+	pressed = 0
+	vive_init()
+	s = 1
+	hydra_init()
+	sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+	sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+	sock.setblocking(0)
+	sock.bind((UDP_IP,UDP_PORT))
+	keepPressDirection = "none"
+	keepPress = 0
 
 if s == 1:
         vive_controller()
